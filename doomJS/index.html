@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raycasting Mejorado</title>
+    <style>
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 500;
+
+// Mapa del mundo (1 representa una pared, 0 representa espacio vacío)
+const map = [
+  [1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 1, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1],
+];
+
+const tileSize = 64;
+let player = {
+  x: 150,  // Posición inicial del jugador
+  y: 150,
+  angle: 0, // Dirección en la que mira
+  speed: 1.5, // Velocidad del jugador reducida
+};
+
+function drawMiniMap() {
+  for (let row = 0; row < map.length; row++) {
+    for (let col = 0; col < map[row].length; col++) {
+      if (map[row][col] === 1) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(col * tileSize / 8, row * tileSize / 8, tileSize / 8, tileSize / 8);
+      }
+    }
+  }
+}
+
+function castRay(angle) {
+  let xStep, yStep, wallHit = false;
+  let distance = 0;
+  let rayX = player.x;
+  let rayY = player.y;
+
+  // Incrementos en la posición del rayo
+  xStep = Math.cos(angle);
+  yStep = Math.sin(angle);
+
+  // Seguimos avanzando hasta encontrar una pared o salir del mapa
+  while (!wallHit && distance < 300) {
+    rayX += xStep;
+    rayY += yStep;
+    distance += 1;
+
+    const mapX = Math.floor(rayX / tileSize);
+    const mapY = Math.floor(rayY / tileSize);
+
+    if (map[mapY] && map[mapY][mapX] === 1) {
+      wallHit = true;
+    }
+  }
+
+  return distance;
+}
+
+function renderScene() {
+  const fov = Math.PI / 3;
+  const halfFov = fov / 3;
+  const numRays = canvas.width;
+  const angleStep = fov / numRays;
+
+  for (let i = 0; i < numRays; i++) {
+    const rayAngle = player.angle - halfFov + i * angleStep;
+    const distance = castRay(rayAngle);
+
+    // Corregir el efecto de "fish-eye"
+    const correctedDistance = distance * Math.cos(rayAngle - player.angle);
+
+    // Calcular la altura de la pared con un factor de escala mayor para que se vean más cuadradas
+    const wallHeight = (tileSize * 10) / correctedDistance;
+
+    // Dibujar la pared
+    ctx.fillStyle = 'brown';
+    ctx.fillRect(i, (canvas.height / 2) - wallHeight / 2, 1, wallHeight);
+    // Dibujar el suelo con archivo png 
+    ctx.fillStyle = 'green';
+    ctx.fillRect(i, (canvas.height / 2) + wallHeight / 2, 1, canvas.height / 2);
+
+
+  }
+}
+
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Movimiento del jugador
+  if (keys['ArrowUp']) {
+    player.x += Math.cos(player.angle) * player.speed;
+    player.y += Math.sin(player.angle) * player.speed;
+  }
+  if (keys['ArrowDown']) {
+    player.x -= Math.cos(player.angle) * player.speed;
+    player.y -= Math.sin(player.angle) * player.speed;
+  }
+  if (keys['ArrowLeft']) {
+    player.angle -= 0.05;
+  }
+  if (keys['ArrowRight']) {
+    player.angle += 0.05;
+  }
+
+  // Renderizar la escena 3D
+  renderScene();
+
+  // Dibujar mini mapa (2D)
+  drawMiniMap();
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Manejo de teclas
+const keys = {};
+window.addEventListener('keydown', (e) => {
+  keys[e.key] = true;
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.key] = false;
+});
+
+// Iniciar el bucle del juego
+gameLoop();
+</script>
+</body>
+</html>

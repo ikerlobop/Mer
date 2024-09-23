@@ -1,23 +1,37 @@
-let start = 0;  // punto de inicio para el noise
+let start = 0;
+let velocidad = 0.05;
+
 
 function setup() {
-  createCanvas(800, 400);  // tamaño del canvas
-  noLoop();  // evitamos el redibujado continuo, solo dibuja una vez
+  createCanvas(800, 400); 
+ 
+  noCursor();
+  //se actualiza la pantalla con el cursor izquierdo
+  cursor(CROSS);  
+  
 }
 
 function draw() {
-  background(135, 206, 235);  // color de fondo (cielo azul claro)
-  stroke(0);  // color de línea para el terreno
-    fill(34, 139, 34);  // color de relleno para el terreno (verde)
-
-  beginShape();  // comienza a dibujar la línea de terreno
+  background(135, 206, 235);  // color de fondo 
+  stroke(0);  // color terreno
+  fill(34, 139, 34);  // color relleno terreno
+  circle(mouseX, mouseY, 10);
+  
+  beginShape();  
+  
   let xoff = start;
   for (let x = 0; x < width; x++) {
-    let y = map(noise(xoff), 0, 1, height / 2, height);  // generar altura basada en Perlin noise
-    vertex(x, y);  // crear vértices para el terreno
-    xoff += 0.005;  // ajusta la velocidad del desplazamiento del noise
+    let y = map(noise(xoff), 0, 2, height / 2, height);  
+    vertex(x, y);  
+    xoff += 0.04;  
   }
-  vertex(width, height);  // cierra la forma en la esquina inferior derecha
-  vertex(0, height);  // cierra la forma en la esquina inferior izquierda
-  endShape(CLOSE);  // termina de dibujar el terreno
+
+
+ //scrolling effect
+  start += 0.05;  
+  vertex(width, height);  
+  vertex(0, height);  
+  endShape(CLOSE);
+
+
 }
