@@ -107,9 +107,9 @@ function castRay(angle) {
 }
 
 function renderScene() {
-  const fov = Math.PI / 4; // Reduje el campo de visión
+  const fov = Math.PI / 4; // Campo de visión del jugador
   const halfFov = fov / 2;
-  const numRays = canvas.width;
+  const numRays = canvas.width; // Cantidad de rayos que vamos a lanzar
   const angleStep = fov / numRays;
 
   for (let i = 0; i < numRays; i++) {
@@ -122,8 +122,12 @@ function renderScene() {
     // Calcular la altura de la pared
     const wallHeight = Math.min((tileSize * 300) / correctedDistance, canvas.height);
 
-    // Dibujar la pared
-    ctx.fillStyle = 'brown';
+    // Calcular el sombreado en función de la distancia
+    const shadeFactor = Math.max(1 - correctedDistance / 500, 0); // Reduce la luz con la distancia
+    const wallColor = `rgb(${Math.floor(139 * shadeFactor)}, ${Math.floor(69 * shadeFactor)}, ${Math.floor(19 * shadeFactor)})`; // Color marrón con sombreado
+
+    // Dibujar la pared con sombreado
+    ctx.fillStyle = wallColor;
     ctx.fillRect(i, (canvas.height / 2) - wallHeight / 2, 1, wallHeight);
 
     // Dibujar el suelo
@@ -131,6 +135,7 @@ function renderScene() {
     ctx.fillRect(i, (canvas.height / 2) + wallHeight / 2, 1, canvas.height / 2);
   }
 }
+
 
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
